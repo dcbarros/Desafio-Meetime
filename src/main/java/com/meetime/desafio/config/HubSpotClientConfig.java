@@ -1,25 +1,27 @@
 package com.meetime.desafio.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.meetime.desafio.core.dto.HubSpotProperties;
 import com.meetime.desafio.infrastructure.hubspot.TokenManager;
+
+import lombok.RequiredArgsConstructor;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class HubSpotClientConfig {
 
-    @Value("${hubspot.api-url}")
-    private String hubspotApiUrl;
+    private final HubSpotProperties hubSpotProperties;
 
     @Bean
     public WebClient hubspotWebClient(TokenManager tokenManager) {
 
         return WebClient.builder()
-                .baseUrl(hubspotApiUrl)
+                .baseUrl(hubSpotProperties.getApiUrl())
                 .filter((request, next) -> {
 
                     if (tokenManager.hasTokens()) {

@@ -11,13 +11,17 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.meetime.desafio.core.dto.HubSpotProperties;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class WebhookService {
-    @Value("${hubspot.client-secret}")
-    private String clientSecret;
+
+    private final HubSpotProperties hubSpotProperties;
     private static final Logger logger = LoggerFactory.getLogger(WebhookService.class);
 
     public boolean requestIsValid(String requestBody, String signature) {
@@ -31,7 +35,7 @@ public class WebhookService {
     }
 
     private String computeSignature(String requestBody) throws NoSuchAlgorithmException, InvalidKeyException {
-        SecretKeySpec key = new SecretKeySpec(clientSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        SecretKeySpec key = new SecretKeySpec(hubSpotProperties.getClientSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(key);
         byte[] hash = mac.doFinal(requestBody.getBytes(StandardCharsets.UTF_8));

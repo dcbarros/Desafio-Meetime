@@ -5,8 +5,12 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.meetime.desafio.config.exceptions.TooManyRequestsException;
 import com.meetime.desafio.core.dto.HubSpotProperties;
 
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -16,6 +20,7 @@ public class HubSpotClient {
 
     private final WebClient webClient;
     private final HubSpotProperties hubSpotProperties;
+    private final RateLimiter rateLimiter;
 
     public Mono<Boolean> searchContactByEmail(String Email) {
         String searchUrl = hubSpotProperties.getApiUrl() + "/crm/v3/objects/contacts/search";
@@ -39,6 +44,10 @@ public class HubSpotClient {
                 .bodyValue(filterRequest)
                 .retrieve()
                 .bodyToMono(Map.class)
+                .transformDeferred(RateLimiterOperator.of(rateLimiter))
+                .onErrorResume(RequestNotPermitted.class, ex -> 
+                    Mono.error(new TooManyRequestsException("Rate limit excedido, aguarde alguns segundos."))
+                )
                 .map(response -> {
 
                     var results = (java.util.List<?>) response.get("results");
@@ -52,7 +61,11 @@ public class HubSpotClient {
         return webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});
+                .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+                .transformDeferred(RateLimiterOperator.of(rateLimiter))
+                .onErrorResume(RequestNotPermitted.class, ex -> 
+                    Mono.error(new TooManyRequestsException("Rate limit excedido, aguarde alguns segundos."))
+                );
     }
 
     public Mono<String> createContact(Map<String, Object> contactProperties) {
@@ -64,6 +77,10 @@ public class HubSpotClient {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(Map.class)
+                .transformDeferred(RateLimiterOperator.of(rateLimiter))
+                .onErrorResume(RequestNotPermitted.class, ex -> 
+                    Mono.error(new TooManyRequestsException("Rate limit excedido, aguarde alguns segundos."))
+                )
                 .map(response -> response.get("id").toString()); 
     }
 }

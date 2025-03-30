@@ -38,6 +38,14 @@ public class RestControllerAdvice extends ResponseEntityExceptionHandler{
         return new ResponseEntity<>(error, status);
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyRequests(TooManyRequestsException ex) {
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+        ErrorResponse error = new ErrorResponse(ex.getClass(), status,
+            "Limite de requisições atingido: " + ex.getMessage());
+        return new ResponseEntity<>(error, status);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;

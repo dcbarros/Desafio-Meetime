@@ -19,10 +19,6 @@ O desafio proposto consiste em desenvolver uma API REST utilizando Spring Boot p
   
 ```POST /api/v1/contacts```: Cria um novo contato no CRM da HubSpot via API. Antes da criação, a aplicação verifica se já existe um contato com o mesmo email para evitar duplicações.
 
-- **Recebimento de Webhook**:
-  
-```POST /api/v1/webhook```: Recebe notificações de webhooks do tipo “contact.creation” enviadas pela HubSpot quando novos contatos são criados no CRM. Este endpoint valida a assinatura do webhook (para garantir que a requisição veio da HubSpot) antes de processar.
-
 ### Corpo da requisição
 ```
 {
